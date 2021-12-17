@@ -32,21 +32,19 @@ class Packet
       total_length = binary.slice(1..15).to_i(2)
       @remainder = binary.slice(total_length + 16..-1)
       binary = binary.slice(16..(total_length + 15))
-      while binary.length > 0 do
-        packet = Packet.new(binary)
-        @packets << packet
-        binary = packet.remainder
-      end
+      while binary.length > 0 do binary = add_packet(binary) end
     else
       num_subpackets = binary.slice(1..11).to_i(2)
       binary = binary.slice(12..-1)
-      0.upto(num_subpackets - 1) do
-        packet = Packet.new(binary)
-        @packets << packet
-        binary = packet.remainder
-      end
+      0.upto(num_subpackets - 1) { binary = add_packet(binary) }
       @remainder = binary
     end
+  end
+
+  def add_packet(binary)
+    packet = Packet.new(binary)
+    @packets << packet
+    packet.remainder
   end
 
   def sum_versions
