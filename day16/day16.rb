@@ -52,6 +52,27 @@ class Packet
   def sum_versions
     version + packets.map(&:sum_versions).sum
   end
+
+  def value
+    case @type_id
+    when 0
+      @packets.map(&:value).inject(&:+)
+    when 1
+      @packets.map(&:value).inject(&:*)
+    when 2
+      @packets.map(&:value).min
+    when 3
+      @packets.map(&:value).max
+    when 4
+      @literal
+    when 5
+      @packets[0].value > @packets[1].value ? 1 : 0
+    when 6
+      @packets[0].value < @packets[1].value ? 1 : 0
+    when 7
+      @packets[0].value == @packets[1].value ? 1 : 0
+    end
+  end
 end
 
 puts 'Should be 2021:'
@@ -79,3 +100,36 @@ puts
 
 puts 'First star:'
 puts Packet.from_hex(File.read('input.txt').chomp).sum_versions
+
+
+puts 'should be 3:'
+puts Packet.from_hex('C200B40A82').value
+puts
+
+puts 'should be 54:'
+puts Packet.from_hex('04005AC33890').value
+puts
+
+puts 'should be 7:'
+puts Packet.from_hex('880086C3E88112').value
+puts
+
+puts 'should be 9:'
+puts Packet.from_hex('CE00C43D881120').value
+puts
+
+puts 'should be 1:'
+puts Packet.from_hex('D8005AC2A8F0').value
+puts
+
+puts 'should be 0:'
+puts Packet.from_hex('F600BC2D8F').value
+
+puts 'should be 0:'
+puts Packet.from_hex('9C005AC2F8F0').value
+
+puts 'should be 1'
+puts Packet.from_hex('9C0141080250320F1802104A08').value
+
+puts 'second star'
+puts Packet.from_hex(File.read('input.txt').chomp).value
