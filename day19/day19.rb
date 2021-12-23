@@ -1,8 +1,7 @@
 class Scanner
-  attr_accessor :points, :orientation, :xoff, :yoff, :zoff, :parent, :name, :failed_aligns
+  attr_accessor :points, :orientation, :xoff, :yoff, :zoff, :name, :failed_aligns
   def initialize(name)
     @points = []
-    @parent = nil
     @name = name
     @failed_aligns = []
   end
@@ -13,11 +12,6 @@ class Scanner
 
   def position=(pos)
     @orientation, @xoff, @yoff, @zoff = pos
-  end
-
-  def adjusted_points
-    points_at_orientation(@orientation, 0, 0, 0)
-    #points_at_orientation(0, 0, 0, 0)
   end
 
   def well_adjusted_points
@@ -78,7 +72,6 @@ class BeaconScanners
   end
 
   def try_alignment(fixed, not_fixed)
-    #puts "Trying to align #{not_fixed.name} with #{fixed.name}"
     return if not_fixed.failed_aligns.include?(fixed)
     offsets = {}
     0.upto(23) do |ori|
@@ -92,11 +85,6 @@ class BeaconScanners
         end
       end
       if winner = offsets.select{|k, v| v.uniq.length >= 12}.keys.first
-        #puts "CORRECT POINTS"
-        #offsets[winner].each {|p| puts p.join(',')}
-        #@beacons += offsets[winner]
-        #@beacons.uniq!
-        #puts @beacons.length
         return [ori, winner[0], winner[1], winner[2]]
       end
     end
@@ -111,18 +99,14 @@ class BeaconScanners
 
     loop do
       break if @scanners.empty?
-      #puts @scanners.length
       @scanners.each do |scanner|
         found = false
         @fixed_scanners.each do |fixed|
           alignment = try_alignment(fixed, scanner)
           if alignment
-            #puts alignment
             scanner.position = alignment
-            scanner.parent = fixed
             @beacons += scanner.well_adjusted_points
             @beacons.uniq!
-            #scanner.well_adjusted_points.map{|p| p.join(',')}.sort.each{|x| puts x}
             @scanners -= [scanner]
             @fixed_scanners += [scanner]
             puts "Aligned #{scanner.name}"
@@ -136,41 +120,27 @@ class BeaconScanners
     @beacons.count
   end
 
-  #def count_beacons_temp
-    #@scanners[0].position = [0, 0, 0, 0]
-    #alignment = try_alignment(@scanners[0], @scanners[1])
-    #if alignment
-      #puts alignment
-      #@scanners[1].position = alignment
-      #@scanners[1].parent = @scanners[0]
-      #puts "ADJUSTED POINTS"
-      #@scanners[1].well_adjusted_points.map{|p| p.join(',')}.sort.each{|x| puts x}
-    #end
+  def manhattan_distance(scanner1, scanner2)
+    (scanner1.xoff - scanner2.xoff).abs +
+      (scanner1.yoff - scanner2.yoff).abs +
+      (scanner1.zoff - scanner2.zoff).abs
+  end
 
-
-    #puts
-    #puts "Trying scanner 4"
-    #alignment = try_alignment(@scanners[1], @scanners[4])
-    #if alignment
-      #puts alignment
-      #@scanners[4].position = alignment
-      #@scanners[4].parent = @scanners[1]
-      #puts "ADJUSTED POINTS"
-      #@scanners[4].well_adjusted_points.map{|p| p.join(',')}.sort.each{|x| puts x}
-    #end
-  #end
+  def max_distance
+    best = 0
+    0.upto(@fixed_scanners.length - 1) do |idx1|
+      0.upto(@fixed_scanners.length - 1) do |idx2|
+        best = [best, manhattan_distance(@fixed_scanners[idx1], @fixed_scanners[idx2])].max
+      end
+    end
+    best
+  end
 end
 
-puts BeaconScanners.new('input-test.txt').count_beacons
-puts BeaconScanners.new('input.txt').count_beacons
+test_scanner = BeaconScanners.new('input-test.txt')
+puts test_scanner.count_beacons
+puts test_scanner.max_distance
 
-#test = Scanner.new
-#test.add_points([-1, -1, 1])
-#test.add_points([-2, -2, 2])
-#test.add_points([-3, -3, 3])
-#test.add_points([-2, -3, 1])
-#test.add_points([5, 6, -4])
-#test.add_points([8, 0, 7])
-#0.upto(24) do |ori|
-  #test.points_at_orientation(ori)
-#end
+real_scanner = BeaconScanners.new('input.txt')
+puts real_scanner.count_beacons
+puts real_scanner.max_distance
