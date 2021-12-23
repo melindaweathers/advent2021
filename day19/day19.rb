@@ -38,10 +38,6 @@ class Point
     ]
   end
 
-  def to_s
-    [x, y, z].join(',')
-  end
-
   def at_orientation(ori, xoff, yoff, zoff)
     #orientations(x + xoff, y + yoff, z + zoff)[ori]
     x, y, z = orientations[ori]
@@ -49,9 +45,10 @@ class Point
   end
 end
 class Scanner
-  attr_accessor :points, :orientation, :xoff, :yoff, :zoff
+  attr_accessor :points, :orientation, :xoff, :yoff, :zoff, :parent
   def initialize
     @points = []
+    @parent = nil
   end
 
   def add_points(points)
@@ -63,6 +60,11 @@ class Scanner
   end
 
   def adjusted_points
+    #points_at_orientation(@orientation, 0, 0, 0)
+    points_at_orientation(0, 0, 0, 0)
+  end
+
+  def well_adjusted_points
     points_at_orientation(@orientation, @xoff, @yoff, @zoff)
   end
 
@@ -109,7 +111,8 @@ class BeaconScanners
         end
       end
       if winner = offsets.select{|k, v| v.uniq.length >= 12}.keys.first
-        #offsets[winner].each {|p| puts p.join(',')}
+        puts "CORRECT POINTS"
+        offsets[winner].each {|p| puts p.join(',')}
         @beacons += offsets[winner]
         @beacons.uniq!
         puts @beacons.length
@@ -126,14 +129,16 @@ class BeaconScanners
     loop do
       break if @scanners.empty?
       puts @scanners.length
-      puts @fixed_scanners.length
       @scanners.each do |scanner|
         found = @fixed_scanners.each do |fixed|
           alignment = try_alignment(fixed, scanner)
           if alignment
             puts alignment
             scanner.position = alignment
-            scanner.adjusted_points.map{|p| p.join(',')}.sort.each{|x| puts x}
+            scanner.parent = fixed
+            puts
+            puts "ADJUSTED POINTS"
+            scanner.well_adjusted_points.map{|p| p.join(',')}.sort.each{|x| puts x}
             @scanners -= [scanner]
             @fixed_scanners += [scanner]
             break true
