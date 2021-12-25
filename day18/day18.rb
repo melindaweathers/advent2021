@@ -124,6 +124,17 @@ def magnitude_cheating(arr)
   end
 end
 
+def largest_magnitude(filename)
+  snailfishes = IO.readlines(filename).map{|line| line.chomp }
+  largest = 0
+  0.upto(snailfishes.length - 1) do |x|
+    0.upto(snailfishes.length - 1) do |y|
+      largest = [largest, magnitude(add(snailfishes[x], snailfishes[y]))].max unless x == y
+    end
+  end
+  largest
+end
+
 puts explode('[[[[[9,8],1],2],3],4]') == '[[[[0,9],2],3],4]'
 puts explode('[7,[6,[5,[4,[3,2]]]]]') == '[7,[6,[5,[7,0]]]]'
 puts explode('[[6,[5,[4,[3,2]]]],1]') == '[[6,[5,[7,0]]],3]'
@@ -138,5 +149,7 @@ puts magnitude('[[[[3,0],[5,3]],[4,4]],[5,5]]') == 791
 puts magnitude('[[[[5,0],[7,4]],[5,5]],[6,6]]') == 1137
 puts magnitude('[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]') == 3488
 puts magnitude(add_all('input-test2.txt')) == 4140
+puts largest_magnitude('input-test2.txt') == 3993
 
 puts magnitude(add_all('input.txt'))
+puts largest_magnitude('input.txt')
